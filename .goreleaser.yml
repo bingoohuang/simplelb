@@ -1,5 +1,5 @@
 # Make sure to check the documentation at https://goreleaser.com, https://goreleaser.com/customization/
-project_name: mci
+project_name: simplelb
 before:
   hooks:
     - go mod download
