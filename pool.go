@@ -80,8 +80,9 @@ func (s *BackendPool) healthCheck() {
 // Lb load balances the incoming request
 func (s *BackendPool) Lb(ctx *fasthttp.RequestCtx) {
 	if peer := s.GetNextPeer(); peer != nil {
-		peer.Proxy.ServeHTTP(ctx)
-		return
+		if err := peer.Proxy.ServeHTTP(ctx); err == nil {
+			return
+		}
 	}
 
 	ctx.Error("Service not available", http.StatusServiceUnavailable)
