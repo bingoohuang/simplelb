@@ -1,3 +1,4 @@
 *.exe
 simplelb
 .idea
+/dist
