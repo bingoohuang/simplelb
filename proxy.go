@@ -2,13 +2,19 @@ package simplelb
 
 import (
 	"net"
+	"time"
 
 	"github.com/valyala/fasthttp"
 )
 
 // NewReverseProxy ...
 func NewReverseProxy(isTLS bool, host string) *ReverseProxy {
-	return &ReverseProxy{client: &fasthttp.HostClient{Addr: host, IsTLS: isTLS}}
+	return &ReverseProxy{
+		client: &fasthttp.HostClient{
+			Addr: host, IsTLS: isTLS,
+			Dial: TimeoutDialContext(60*time.Second, 60*time.Second),
+		},
+	}
 }
 
 // ReverseProxy reverse handler using fasthttp.HostClient
