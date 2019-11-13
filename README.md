@@ -50,3 +50,4 @@ $ simplelb -b http://127.0.0.1:9001,http://127.0.0.1:9002
 ## Thanks
 
 1. [Let's Create a Simple Load Balancer With Go](https://kasvith.github.io/posts/lets-create-a-simple-lb-go/)
+1. [Reverse Proxy in Go](https://blog.charmes.net/post/reverse-proxy-go/)

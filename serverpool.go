@@ -30,8 +30,7 @@ func (s *ServerPool) nextIndex() int {
 
 // GetNextPeer returns next active peer to take a connection
 func (s *ServerPool) GetNextPeer() *Backend {
-	// loop entire backends to find out an Alive backend
-	next := s.nextIndex()
+	next := s.nextIndex()     // loop entire backends to find out an Alive backend
 	l := s.backendsNum + next // start from next and move a full cycle
 
 	for i := next; i < l; i++ {
@@ -97,6 +96,15 @@ func (s *ServerPool) createProxy(backIndex int, backURL *url.URL) *httputil.Reve
 	proxy := httputil.NewSingleHostReverseProxy(backURL)
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
 		s.retry(backIndex, proxy, w, r, e)
+	}
+	proxy.Transport = &http.Transport{
+		DialContext:           TimeoutDialContext(10*time.Second, 10*time.Second),
+		Proxy:                 http.ProxyFromEnvironment,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       30 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second,
 	}
 
 	return proxy
