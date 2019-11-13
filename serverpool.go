@@ -16,6 +16,13 @@ type ServerPool struct {
 	current     uint64
 }
 
+// CheckBackends check backends
+func (s *ServerPool) CheckBackends() {
+	if s.backendsNum == 0 {
+		log.Fatal("Please provide one or more backends to load balance")
+	}
+}
+
 // addBackend to the server pool
 func (s *ServerPool) addBackend(backend *Backend) {
 	s.backends = append(s.backends, backend)
@@ -36,8 +43,11 @@ func (s *ServerPool) GetNextPeer() *Backend {
 	next := s.nextIndex()     // loop entire backends to find out an Alive backend
 	l := s.backendsNum + next // start from next and move a full cycle
 
+	idx := 0
+
 	for i := next; i < l; i++ {
-		idx := i % s.backendsNum       // take an index by modding
+		idx = i % s.backendsNum // take an index by modding
+
 		if s.backends[idx].IsAlive() { // if we have an alive backend, use it and store if its not the original one
 			if i != next {
 				atomic.StoreUint64(&s.current, uint64(idx))
@@ -47,7 +57,10 @@ func (s *ServerPool) GetNextPeer() *Backend {
 		}
 	}
 
-	return nil
+	// 如果全部下线，则选择一个进行尝试
+	atomic.StoreUint64(&s.current, uint64(idx))
+
+	return s.backends[idx]
 }
 
 // healthCheck pings the backends and update the status

@@ -1,19 +1,14 @@
 package simplelb
 
 import (
+	"net"
+
 	"github.com/valyala/fasthttp"
 )
 
 // NewReverseProxy ...
 func NewReverseProxy(isTLS bool, host string) *ReverseProxy {
-	client := &fasthttp.HostClient{
-		Addr:  host,
-		IsTLS: isTLS,
-	}
-
-	return &ReverseProxy{
-		client: client,
-	}
+	return &ReverseProxy{client: &fasthttp.HostClient{Addr: host, IsTLS: isTLS}}
 }
 
 // ReverseProxy reverse handler using fasthttp.HostClient
@@ -28,9 +23,9 @@ func (p *ReverseProxy) ServeHTTP(ctx *fasthttp.RequestCtx) {
 	res := &ctx.Response
 
 	// prepare request(replace headers and some URL host)
-	//if clientIP, _, err := net.SplitHostPort(ctx.RemoteAddr().String()); err == nil {
-	//	req.Header.Add("X-Forwarded-For", clientIP)
-	//}
+	if clientIP, _, err := net.SplitHostPort(ctx.RemoteAddr().String()); err == nil {
+		req.Header.Add("X-Forwarded-For", clientIP)
+	}
 
 	// to save all response header
 	resHeaders := make(map[string]string)
@@ -44,6 +39,8 @@ func (p *ReverseProxy) ServeHTTP(ctx *fasthttp.RequestCtx) {
 			resHeaders[key] = value
 		}
 	})
+
+	resHeaders["Server"] = "simplelb"
 
 	// Hop-by-hop headers. These are removed when sent to the backend.
 	// As of RFC 7230, hop-by-hop headers are required to appear in the

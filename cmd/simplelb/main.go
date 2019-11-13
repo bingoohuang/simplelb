@@ -16,13 +16,13 @@ import (
 )
 
 func main() {
-	cpuProfile()
-
 	backends := ""
 	port := 0
+	profiled := false
 
 	flag.StringVar(&backends, "b", "", "Load balanced backends, use , to separate")
 	flag.IntVar(&port, "p", 3030, "Port to serve")
+	flag.BoolVar(&profiled, "profiled", false, "StartCPUProfile or not")
 	flag.Parse()
 
 	if backends == "" {
@@ -30,9 +30,15 @@ func main() {
 	}
 
 	serverPool := simplelb.CreateServerPool(backends)
+	serverPool.CheckBackends()
+
 	addr := fmt.Sprintf(":%d", port)
 
 	go serverPool.HealthCheck()
+
+	if profiled {
+		cpuProfile()
+	}
 
 	log.Printf("Load Balancer started at :%d\n", port)
 
@@ -47,8 +53,7 @@ func cpuProfile() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		// Block until a signal is received.
-		s := <-c
+		s := <-c // Block until a signal is received.
 		fmt.Println("Got signal:", s)
 		pprof.StopCPUProfile()
 		_ = cpuProfile.Close()

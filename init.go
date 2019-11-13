@@ -9,8 +9,6 @@ import (
 func CreateServerPool(serverList string) *ServerPool {
 	var serverPool ServerPool
 
-	index := 0
-
 	for _, tok := range strings.Split(serverList, ",") {
 		tok = strings.TrimSpace(tok)
 		if tok == "" {
@@ -24,10 +22,9 @@ func CreateServerPool(serverList string) *ServerPool {
 			log.Fatal(err)
 		}
 
-		b := &Backend{IsTLS: isTLS, Host: host, Alive: true}
+		b := &Backend{IsTLS: isTLS, Host: host, Alive: true, Proxy: NewReverseProxy(isTLS, host)}
 		serverPool.addBackend(b)
-		b.Proxy = NewReverseProxy(isTLS, host)
-		index++
+
 		log.Printf("Configured server: %s\n", serverURL)
 	}
 
