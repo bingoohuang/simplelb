@@ -6,8 +6,8 @@ import (
 )
 
 // CreateServerPool creates a server pool by serverList
-func CreateServerPool(serverList string) *ServerPool {
-	var serverPool ServerPool
+func CreateServerPool(serverList string) *BackendPool {
+	var serverPool BackendPool
 
 	for _, tok := range strings.Split(serverList, ",") {
 		tok = strings.TrimSpace(tok)
@@ -23,7 +23,7 @@ func CreateServerPool(serverList string) *ServerPool {
 		}
 
 		b := &Backend{IsTLS: isTLS, Host: host, Alive: true, Proxy: NewReverseProxy(isTLS, host)}
-		serverPool.addBackend(b)
+		serverPool.Add(b)
 
 		log.Printf("Configured server: %s\n", serverURL)
 	}
