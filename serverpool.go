@@ -98,13 +98,12 @@ func (s *ServerPool) createProxy(backIndex int, backURL *url.URL) *httputil.Reve
 		s.retry(backIndex, proxy, w, r, e)
 	}
 	proxy.Transport = &http.Transport{
-		DialContext:           TimeoutDialContext(10*time.Second, 10*time.Second),
+		DialContext:           TimeoutDialContext(60*time.Second, 60*time.Second),
 		Proxy:                 http.ProxyFromEnvironment,
 		MaxIdleConns:          100,
-		IdleConnTimeout:       30 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		ResponseHeaderTimeout: 10 * time.Second,
 	}
 
 	return proxy

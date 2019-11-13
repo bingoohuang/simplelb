@@ -5,11 +5,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/bingoohuang/simplelb"
+
+	"runtime/pprof"
 )
 
 func main() {
+	cpuProfile()
+
 	backends := ""
 	port := 0
 
@@ -32,4 +39,21 @@ func main() {
 	log.Printf("Load Balancer started at :%d\n", port)
 
 	log.Fatal(server.ListenAndServe())
+}
+
+func cpuProfile() {
+	cpuProfile, _ := os.Create("cpu_profile")
+	_ = pprof.StartCPUProfile(cpuProfile)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		// Block until a signal is received.
+		s := <-c
+		fmt.Println("Got signal:", s)
+		pprof.StopCPUProfile()
+		_ = cpuProfile.Close()
+		os.Exit(-1)
+	}()
 }
