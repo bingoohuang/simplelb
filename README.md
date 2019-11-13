@@ -9,6 +9,16 @@ It also performs active cleaning and passive recovery for unhealthy backends.
 
 Since its simple it assume if / is reachable for any host its available
 
+已经实现的功能：
+
+1. 后端的RR负载均衡算法（见下面示意图）
+1. 后端每20秒的健康检查
+1. 单个后端的3次重试(retries)和整个后端集群的3次尝试(attempts)
+
+![image](https://user-images.githubusercontent.com/1940588/68740133-5a7e3a80-0625-11ea-8faa-dcca0df04b7b.png)
+
+![image](https://user-images.githubusercontent.com/1940588/68740165-6e29a100-0625-11ea-8ddd-3854735e0ae1.png)
+
 
 ## How to build
 
@@ -36,3 +46,7 @@ $ simplelb -b http://127.0.0.1:9001,http://127.0.0.1:9002
 2019/11/13 13:22:07 Configured server: http://127.0.0.1:9002
 2019/11/13 13:22:07 Load Balancer started at :3030
 ```
+
+## Thanks
+
+1. [Let's Create a Simple Load Balancer With Go](https://kasvith.github.io/posts/lets-create-a-simple-lb-go/)

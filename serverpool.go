@@ -86,7 +86,7 @@ func (s *ServerPool) Lb(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Service not available", http.StatusServiceUnavailable)
 }
 
-// HealthCheck runs a routine for check status of the backends every 2s
+// HealthCheck runs a routine for check status of the backends every 20s
 func (s *ServerPool) HealthCheck() {
 	for range time.NewTicker(time.Second * 20).C {
 		s.healthCheck()
@@ -109,7 +109,7 @@ func (s *ServerPool) retry(backIndex int, p http.Handler, w http.ResponseWriter,
 	if retries := GetRetry(r); retries < 3 {
 		<-time.After(10 * time.Millisecond)
 
-		ctx := context.WithValue(r.Context(), Retry, retries+1)
+		ctx := context.WithValue(r.Context(), Retries, retries+1)
 		p.ServeHTTP(w, r.WithContext(ctx))
 
 		return

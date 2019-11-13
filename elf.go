@@ -11,8 +11,8 @@ type key int
 const (
 	// Attempts represents the key of attempts times.
 	Attempts key = iota
-	// Retry represents the key of retry times.
-	Retry
+	// Retries represents the key of retry times.
+	Retries
 )
 
 // GetAttempts returns the attempts for request
@@ -26,7 +26,7 @@ func GetAttempts(r *http.Request) int {
 
 // GetRetry returns the retries for request
 func GetRetry(r *http.Request) int {
-	if retry, ok := r.Context().Value(Retry).(int); ok {
+	if retry, ok := r.Context().Value(Retries).(int); ok {
 		return retry
 	}
 
