@@ -1,3 +1,3 @@
-module github.com/kasvith/simplelb
+module github.com/bingoohuang/simplelb
 
 go 1.13
