@@ -73,7 +73,7 @@ func (s *BackendPool) healthCheck() {
 
 		b.SetAlive(alive)
 
-		log.Printf("%s alive %v\n", b.Host, alive)
+		log.Printf("HealthCheck %s alive=%v\n", b.Host, alive)
 	}
 }
 
@@ -90,6 +90,8 @@ func (s *BackendPool) Lb(ctx *fasthttp.RequestCtx) {
 
 // HealthCheck runs a routine for check status of the backends every 20s
 func (s *BackendPool) HealthCheck() {
+	s.healthCheck()
+
 	for range time.NewTicker(time.Second * 20).C {
 		s.healthCheck()
 	}
