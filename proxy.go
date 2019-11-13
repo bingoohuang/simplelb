@@ -5,9 +5,10 @@ import (
 )
 
 // NewReverseProxy ...
-func NewReverseProxy(addr string) *ReverseProxy {
+func NewReverseProxy(isTLS bool, host string) *ReverseProxy {
 	client := &fasthttp.HostClient{
-		Addr: addr,
+		Addr:  host,
+		IsTLS: isTLS,
 	}
 
 	return &ReverseProxy{

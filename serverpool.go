@@ -29,6 +29,10 @@ func (s *ServerPool) nextIndex() int {
 
 // GetNextPeer returns next active peer to take a connection
 func (s *ServerPool) GetNextPeer() *Backend {
+	if s.backendsNum == 1 {
+		return s.backends[0]
+	}
+
 	next := s.nextIndex()     // loop entire backends to find out an Alive backend
 	l := s.backendsNum + next // start from next and move a full cycle
 
@@ -50,7 +54,7 @@ func (s *ServerPool) GetNextPeer() *Backend {
 func (s *ServerPool) healthCheck() {
 	for _, b := range s.backends {
 		oldAlive := b.IsAlive()
-		alive := IsAddressAlive(b.URL)
+		alive := IsAddressAlive(b.Host)
 
 		if oldAlive == alive {
 			continue
@@ -63,7 +67,7 @@ func (s *ServerPool) healthCheck() {
 			status = "down"
 		}
 
-		log.Printf("%s [%s]\n", b.URL, status)
+		log.Printf("%s [%s]\n", b.Host, status)
 	}
 }
 
@@ -82,8 +86,4 @@ func (s *ServerPool) HealthCheck() {
 	for range time.NewTicker(time.Second * 20).C {
 		s.healthCheck()
 	}
-}
-
-func (s *ServerPool) createProxy(backURL string) *ReverseProxy {
-	return NewReverseProxy(backURL)
 }

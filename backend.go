@@ -6,8 +6,9 @@ import (
 
 // Backend holds the data about a server
 type Backend struct {
-	URL   string
 	Alive bool
+	IsTLS bool
+	Host  string // ip:port
 	mux   sync.RWMutex
 	Proxy *ReverseProxy
 }

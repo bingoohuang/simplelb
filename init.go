@@ -19,9 +19,14 @@ func CreateServerPool(serverList string) *ServerPool {
 
 		serverURL := tok
 
-		b := &Backend{URL: serverURL, Alive: true}
+		isTLS, host, err := ParseAddress(serverURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		b := &Backend{IsTLS: isTLS, Host: host, Alive: true}
 		serverPool.addBackend(b)
-		b.Proxy = serverPool.createProxy(serverURL)
+		b.Proxy = NewReverseProxy(isTLS, host)
 		index++
 		log.Printf("Configured server: %s\n", serverURL)
 	}

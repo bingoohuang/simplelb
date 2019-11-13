@@ -3,6 +3,8 @@ package simplelb
 import (
 	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -43,4 +45,25 @@ func IsAddressAlive(address string) bool {
 	_ = conn.Close()
 
 	return true
+}
+
+// ParseAddress parses an address to https, host(ip:port)
+func ParseAddress(addr string) (https bool, host string, err error) {
+	backURL, err := url.Parse(addr)
+	if err != nil {
+		return false, "", err
+	}
+
+	https = backURL.Scheme == "https"
+	host = backURL.Host
+
+	if !strings.Contains(host, ":") {
+		if https {
+			host += ":443"
+		} else {
+			host += ":80"
+		}
+	}
+
+	return https, host, nil
 }
