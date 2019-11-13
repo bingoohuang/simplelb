@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +11,8 @@ import (
 	"github.com/bingoohuang/simplelb"
 
 	"runtime/pprof"
+
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -29,16 +30,13 @@ func main() {
 	}
 
 	serverPool := simplelb.CreateServerPool(backends)
-	server := http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: http.HandlerFunc(serverPool.Lb),
-	}
+	addr := fmt.Sprintf(":%d", port)
 
 	go serverPool.HealthCheck()
 
 	log.Printf("Load Balancer started at :%d\n", port)
 
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(fasthttp.ListenAndServe(addr, serverPool.Lb))
 }
 
 func cpuProfile() {

@@ -1,13 +1,12 @@
 package simplelb
 
 import (
-	"context"
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"sync/atomic"
 	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
 // ServerPool holds information about reachable backends
@@ -51,7 +50,7 @@ func (s *ServerPool) GetNextPeer() *Backend {
 func (s *ServerPool) healthCheck() {
 	for _, b := range s.backends {
 		oldAlive := b.IsAlive()
-		alive := IsAddressAlive(b.URL.Host)
+		alive := IsAddressAlive(b.URL)
 
 		if oldAlive == alive {
 			continue
@@ -69,20 +68,13 @@ func (s *ServerPool) healthCheck() {
 }
 
 // Lb load balances the incoming request
-func (s *ServerPool) Lb(w http.ResponseWriter, r *http.Request) {
-	if attempts := GetAttempts(r); attempts > 3 {
-		log.Printf("%s(%s) Max attempts reached, terminating\n", r.RemoteAddr, r.URL.Path)
-		http.Error(w, "Service not available", http.StatusServiceUnavailable)
-
-		return
-	}
-
+func (s *ServerPool) Lb(ctx *fasthttp.RequestCtx) {
 	if peer := s.GetNextPeer(); peer != nil {
-		peer.Proxy.ServeHTTP(w, r)
+		peer.Proxy.ServeHTTP(ctx)
 		return
 	}
 
-	http.Error(w, "Service not available", http.StatusServiceUnavailable)
+	ctx.Error("Service not available", http.StatusServiceUnavailable)
 }
 
 // HealthCheck runs a routine for check status of the backends every 20s
@@ -92,42 +84,6 @@ func (s *ServerPool) HealthCheck() {
 	}
 }
 
-func (s *ServerPool) createProxy(backIndex int, backURL *url.URL) *httputil.ReverseProxy {
-	proxy := httputil.NewSingleHostReverseProxy(backURL)
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, e error) {
-		s.retry(backIndex, proxy, w, r, e)
-	}
-	proxy.Transport = &http.Transport{
-		DialContext:           TimeoutDialContext(60*time.Second, 60*time.Second),
-		Proxy:                 http.ProxyFromEnvironment,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-
-	return proxy
-}
-
-func (s *ServerPool) retry(backIndex int, p http.Handler, w http.ResponseWriter, r *http.Request, e error) {
-	backend := s.backends[backIndex]
-	log.Printf("ErrorHandler [%s] %s\n", backend.URL.Host, e.Error())
-
-	if retries := GetRetry(r); retries < 3 {
-		<-time.After(10 * time.Millisecond)
-
-		ctx := context.WithValue(r.Context(), Retries, retries+1)
-		p.ServeHTTP(w, r.WithContext(ctx))
-
-		return
-	}
-
-	// after 3 retries, mark this backend as down
-	backend.SetAlive(false)
-
-	// if the same r routing for few attempts with different backends, increase the count
-	attempts := GetAttempts(r)
-	log.Printf("%s(%s) Attempting retry %d\n", r.RemoteAddr, r.URL.Path, attempts)
-	ctx := context.WithValue(r.Context(), Attempts, attempts+1)
-	s.Lb(w, r.WithContext(ctx))
+func (s *ServerPool) createProxy(backURL string) *ReverseProxy {
+	return NewReverseProxy(backURL)
 }

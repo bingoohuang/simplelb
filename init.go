@@ -2,7 +2,6 @@ package simplelb
 
 import (
 	"log"
-	"net/url"
 	"strings"
 )
 
@@ -18,14 +17,11 @@ func CreateServerPool(serverList string) *ServerPool {
 			continue
 		}
 
-		serverURL, err := url.Parse(tok)
-		if err != nil {
-			log.Fatal(err)
-		}
+		serverURL := tok
 
 		b := &Backend{URL: serverURL, Alive: true}
 		serverPool.addBackend(b)
-		b.Proxy = serverPool.createProxy(index, serverURL)
+		b.Proxy = serverPool.createProxy(serverURL)
 		index++
 		log.Printf("Configured server: %s\n", serverURL)
 	}

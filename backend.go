@@ -1,17 +1,15 @@
 package simplelb
 
 import (
-	"net/http/httputil"
-	"net/url"
 	"sync"
 )
 
 // Backend holds the data about a server
 type Backend struct {
-	URL   *url.URL
+	URL   string
 	Alive bool
 	mux   sync.RWMutex
-	Proxy *httputil.ReverseProxy
+	Proxy *ReverseProxy
 }
 
 // SetAlive for this backend

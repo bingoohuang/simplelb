@@ -1,3 +1,4 @@
 *.exe
 .idea
 /dist
+/cpu_profile
