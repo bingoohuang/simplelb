@@ -19,7 +19,6 @@ Since its simple it assume if / is reachable for any host its available
 
 ![image](https://user-images.githubusercontent.com/1940588/68740165-6e29a100-0625-11ea-8ddd-3854735e0ae1.png)
 
-
 ## How to build
 
 ```bash
@@ -38,7 +37,6 @@ Usage of simplelb:
 ```
 
 Example:
-
 
 ```bash
 $ simplelb -b http://127.0.0.1:9001,http://127.0.0.1:9002
